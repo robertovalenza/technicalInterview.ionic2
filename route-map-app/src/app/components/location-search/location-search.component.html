@@ -1,0 +1,39 @@
+<div class="search-container">
+  <ion-searchbar
+    [value]="searchQuery()"
+    [placeholder]="placeholder()"
+    [disabled]="disabled()"
+    [debounce]="100"
+    (ionInput)="onSearchChange($event)"
+    (ionClear)="onSearchClear()"
+    (ionFocus)="showPredictionList()"
+    (ionBlur)="hidePredictions()"
+    class="search-input"
+    show-clear-button="always"
+    animated="true">
+  </ion-searchbar>
+
+  @if (showPredictions() && predictions().length > 0) {
+    <ion-list class="predictions-list" lines="full">
+      @for (prediction of predictions(); track prediction.placeId) {
+        <ion-item
+          button
+          detail="false"
+          (click)="onPredictionSelect(prediction)"
+          class="prediction-item">
+          <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+          <ion-label>
+            <h3>{{ prediction.mainText }}</h3>
+            <p>{{ prediction.secondaryText }}</p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+
+  @if (isSearching()) {
+    <div class="search-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+  }
+</div>
