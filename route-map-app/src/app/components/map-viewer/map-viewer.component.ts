@@ -66,7 +66,33 @@ export class MapViewerComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.initializeMap();
+    this.waitForGoogleMaps().then(() => {
+      this.initializeMap();
+    });
+  }
+
+  private waitForGoogleMaps(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof google !== 'undefined' && google.maps) {
+        resolve();
+        return;
+      }
+
+      // Poll for google.maps to be available
+      const interval = setInterval(() => {
+        if (typeof google !== 'undefined' && google.maps) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 100);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        clearInterval(interval);
+        console.error('Google Maps failed to load within 10 seconds');
+        resolve(); // Resolve anyway to prevent hanging
+      }, 10000);
+    });
   }
 
   private initializeMap(): void {
@@ -164,7 +190,7 @@ export class MapViewerComponent implements OnInit {
       routes.forEach(path => {
         path.forEach(point => bounds.extend(point));
       });
-      this.map.fitBounds(bounds, { padding: 50 });
+      this.map.fitBounds(bounds, 50);
     }
   }
 
