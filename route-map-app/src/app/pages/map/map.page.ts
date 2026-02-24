@@ -21,6 +21,7 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { locateOutline, locationOutline } from 'ionicons/icons';
+import { Position } from '@capacitor/geolocation';
 
 import { MapViewerComponent } from '../../components/map-viewer/map-viewer.component';
 import { LocationSearchComponent } from '../../components/location-search/location-search.component';
@@ -57,7 +58,7 @@ export class MapPage implements OnInit, OnDestroy {
   private toastController = inject(ToastController);
   private alertController = inject(AlertController);
 
-  readonly currentPosition = signal<GeolocationPosition | null>(null);
+  readonly currentPosition = signal<Position | null>(null);
   readonly locationError = signal<GeolocationError | null>(null);
   readonly isLocating = signal<boolean>(false);
   readonly selectedDestination = signal<PlaceResult | null>(null);
@@ -120,7 +121,7 @@ export class MapPage implements OnInit, OnDestroy {
       const destination = this.selectedDestination();
       const origin = this.originLocation();
       if (origin && destination) {
-        this.calculateRoutes(origin, destination);
+        this.calculateRoutes(origin, destination.location);
       }
     });
   }

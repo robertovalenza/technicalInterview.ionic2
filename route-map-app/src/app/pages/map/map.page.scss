@@ -1,25 +1,43 @@
-ion-header {
-  ion-toolbar {
-    --background: var(--ion-color-primary);
-    --color: var(--ion-color-primary-contrast);
-  }
+// Google Maps-style layout - full screen
+
+ion-content.map-content {
+  --background: transparent;
+  --overflow: hidden;
+}
+
+// Floating search bar at the top
+.floating-search-container {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 1000;
 
   app-location-search {
     display: block;
-    padding: 8px 0;
-    background: var(--ion-color-primary);
+
+    ::ng-deep .search-input {
+      --background: white;
+      --border-radius: 28px;
+      --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      --color: #202124;
+      --placeholder-color: #5f6368;
+      padding: 0;
+      border-radius: 28px;
+
+      .searchbar-input-container {
+        height: 48px;
+      }
+    }
   }
 }
 
-ion-content {
-  --background: transparent;
-}
-
+// Location banner below search bar
 .location-banner {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 80px;
+  left: 16px;
+  right: 16px;
   z-index: 100;
   background: var(--ion-color-warning);
   color: var(--ion-color-warning-contrast);
@@ -29,16 +47,21 @@ ion-content {
   gap: 8px;
   font-size: 14px;
   font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 
   ion-icon {
     font-size: 18px;
   }
 }
 
+// Full screen map wrapper
 .map-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 
   app-map-viewer {
     display: block;
@@ -47,20 +70,33 @@ ion-content {
   }
 }
 
+// Recenter FAB - positioned like Google Maps
 .recenter-fab {
-  bottom: 80px !important;
+  position: absolute;
+  bottom: 120px;
+  right: 16px;
+  z-index: 500;
 
   ion-fab-button {
-    --background: var(--ion-color-light);
-    --color: var(--ion-color-dark);
-    --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --background: white;
+    --color: #1a73e8;
+    --box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    width: 40px;
+    height: 40px;
+
+    ion-icon {
+      font-size: 20px;
+    }
   }
 }
 
+// Route panel - bottom sheet style
 .route-panel-container {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 200;
+  max-height: 50vh;
+  overflow-y: auto;
 }
