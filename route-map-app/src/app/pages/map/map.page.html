@@ -1,0 +1,48 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Route Map</ion-title>
+  </ion-toolbar>
+  <app-location-search
+    placeholder="Search destination..."
+    (placeSelected)="onDestinationSelected($event)"
+    (searchCleared)="onSearchCleared()"
+    (searchError)="onSearchError($event)">
+  </app-location-search>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (showLocationBanner()) {
+    <div class="location-banner">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>Enable location access for routing</span>
+    </div>
+  }
+
+  <div class="map-wrapper">
+    <app-map-viewer
+      [center]="mapCenter()"
+      [zoom]="16"
+      [originMarker]="originLocation()"
+      [destinationMarker]="destinationLocation()"
+      [routes]="routePaths()"
+      [activeRouteIndex]="selectedRouteIndex()">
+    </app-map-viewer>
+
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="recenter-fab">
+      <ion-fab-button (click)="recenterOnCurrentLocation()" size="small">
+        <ion-icon name="locate-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  </div>
+
+  @if (routes().length > 0 || isCalculatingRoute()) {
+    <div class="route-panel-container">
+      <app-route-panel
+        [routes]="routes()"
+        [selectedRouteIndex]="selectedRouteIndex()"
+        [isLoading]="isCalculatingRoute()"
+        (routeSelected)="onRouteSelected($event)">
+      </app-route-panel>
+    </div>
+  }
+</ion-content>
