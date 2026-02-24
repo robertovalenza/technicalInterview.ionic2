@@ -70,10 +70,10 @@ ion-content.map-content {
   }
 }
 
-// Recenter FAB - positioned on left side to avoid Google Maps controls
+// Recenter FAB - positioned on left side, above routes panel
 .recenter-fab {
   position: absolute;
-  bottom: 32px;
+  bottom: 180px;
   left: 16px;
   z-index: 500;
 
