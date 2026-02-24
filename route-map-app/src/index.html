@@ -17,6 +17,17 @@
   <!-- add to homescreen for ios -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+  <!-- Google Maps API - Loaded dynamically at runtime -->
+  <script>
+    (function() {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?libraries=places`;
+      script.async = true;
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  </script>
 </head>
 
 <body>
