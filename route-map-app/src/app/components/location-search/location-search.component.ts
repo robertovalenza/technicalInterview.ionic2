@@ -94,7 +94,7 @@ export class LocationSearchComponent {
       this.selectedPlace.set(null);
       this.searchCleared.emit();
     }
-    if (query.length >= 2) {
+    if (query.length >= 1) {
       this.searchSubject.next(query);
     } else {
       this.predictions.set([]);

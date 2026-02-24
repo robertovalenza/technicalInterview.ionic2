@@ -33,7 +33,7 @@ export class PlacesService {
   }
 
   async getPlacePredictions(query: string): Promise<PlacePrediction[]> {
-    if (!query || query.length < 2) {
+    if (!query || query.length < 1) {
       return [];
     }
 
