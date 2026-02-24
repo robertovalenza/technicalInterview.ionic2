@@ -65,7 +65,7 @@ export class LocationSearchComponent {
       debounceTime(debounceMs),
       distinctUntilChanged(),
       switchMap(query => {
-        if (!query || query.length < 2) {
+        if (!query || query.length < 1) {
           this.predictions.set([]);
           this.isSearching.set(false);
           return of([]);

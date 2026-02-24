@@ -3,6 +3,6 @@ export const environment = {
   googleMapsApiKey: 'AIzaSyA6a68XV3iqNR2ds6fd3O7R96Y8xRlKDSo',
   defaultMapCenter: { lat: 40.7128, lng: -74.006 }, // New York City fallback
   defaultZoom: 14,
-  autocompleteDebounceMs: 300,
+  autocompleteDebounceMs: 100,
   maxRouteAlternatives: 3,
 };
