@@ -1,0 +1,56 @@
+@if (routes().length > 0) {
+  <ion-card class="route-panel">
+    <ion-card-content>
+      <div class="routes-header">
+        <h3>Select Route</h3>
+        <span class="routes-count">{{ routes().length }} option{{ routes().length !== 1 ? 's' : '' }}</span>
+      </div>
+
+      <div class="routes-list">
+        @for (route of routes(); track route.index; let i = $index) {
+          <ion-item
+            button
+            detail="false"
+            [class.selected]="i === selectedRouteIndex()"
+            (click)="onRouteSelect(i)"
+            class="route-item">
+            <div class="route-content" slot="start">
+              <div class="route-info">
+                <div class="route-label-row">
+                  <span class="route-label">{{ getRouteLabel(i) }}</span>
+                  @if (i === 0) {
+                    <ion-badge color="success" class="best-badge">Best</ion-badge>
+                  }
+                </div>
+                <div class="route-details">
+                  <span class="duration">
+                    <ion-icon name="time-outline"></ion-icon>
+                    {{ route.duration }}
+                  </span>
+                  <span class="distance">({{ route.distance }})</span>
+                </div>
+              </div>
+            </div>
+
+            <ion-icon
+              name="navigate-outline"
+              slot="end"
+              [color]="i === selectedRouteIndex() ? 'primary' : 'medium'">
+            </ion-icon>
+          </ion-item>
+        }
+      </div>
+    </ion-card-content>
+  </ion-card>
+}
+
+@if (isLoading()) {
+  <ion-card class="route-panel loading">
+    <ion-card-content>
+      <div class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Calculating routes...</span>
+      </div>
+    </ion-card-content>
+  </ion-card>
+}
