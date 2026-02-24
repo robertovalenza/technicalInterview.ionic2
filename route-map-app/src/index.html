@@ -18,16 +18,8 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-  <!-- Google Maps API - Loaded dynamically at runtime -->
-  <script>
-    (function() {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?libraries=places`;
-      script.async = true;
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  </script>
+  <!-- Google Maps API - Loaded with API key -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA6a68XV3iqNR2ds6fd3O7R96Y8xRlKDSo&libraries=places"></script>
 </head>
 
 <body>
