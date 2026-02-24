@@ -1,11 +1,8 @@
-// Google Maps-style layout - full screen
-
 ion-content.map-content {
   --background: transparent;
   --overflow: hidden;
 }
 
-// Floating search bar at the top
 .floating-search-container {
   position: absolute;
   top: 16px;
@@ -32,7 +29,6 @@ ion-content.map-content {
   }
 }
 
-// Location banner below search bar
 .location-banner {
   position: absolute;
   top: 80px;
@@ -55,7 +51,6 @@ ion-content.map-content {
   }
 }
 
-// Full screen map wrapper
 .map-wrapper {
   position: absolute;
   top: 0;
@@ -70,11 +65,10 @@ ion-content.map-content {
   }
 }
 
-// Recenter button - Google Maps style blue circle with white arrow
 .recenter-button {
   position: absolute;
-  top: 160px;
-  right: 16px;
+  bottom: 196px;
+  right: 10px;
   z-index: 500;
   width: 40px;
   height: 40px;
@@ -99,11 +93,10 @@ ion-content.map-content {
   ion-icon {
     font-size: 20px;
     color: #1a73e8;
-    transform: rotate(-45deg);
+    transform: rotate(15deg);
   }
 }
 
-// Route panel - bottom sheet style
 .route-panel-container {
   position: absolute;
   bottom: 0;

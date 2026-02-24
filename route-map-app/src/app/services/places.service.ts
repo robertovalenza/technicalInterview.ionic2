@@ -130,7 +130,9 @@ export class PlacesService {
     // Implement LRU cache
     if (this.predictionsCache.size >= this.cacheMaxSize) {
       const firstKey = this.predictionsCache.keys().next().value;
-      this.predictionsCache.delete(firstKey);
+      if (firstKey) {
+        this.predictionsCache.delete(firstKey);
+      }
     }
     this.predictionsCache.set(query, results);
   }

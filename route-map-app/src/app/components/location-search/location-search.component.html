@@ -1,39 +1,83 @@
 <div class="search-container">
-  <ion-searchbar
-    [value]="searchQuery()"
-    [placeholder]="placeholder()"
-    [disabled]="disabled()"
-    [debounce]="100"
-    (ionInput)="onSearchChange($event)"
-    (ionClear)="onSearchClear()"
-    (ionFocus)="showPredictionList()"
-    (ionBlur)="hidePredictions()"
-    class="search-input"
-    show-clear-button="always"
-    animated="true">
-  </ion-searchbar>
+  <!-- Search input with current location button -->
+  <div class="search-input-wrapper">
+    <ion-searchbar
+      [value]="searchQuery()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [debounce]="100"
+      (ionInput)="onSearchChange($event)"
+      (ionClear)="onSearchClear()"
+      (ionFocus)="showPredictionList()"
+      (ionBlur)="hidePredictions()"
+      class="search-input"
+      show-clear-button="always"
+      animated="true">
+    </ion-searchbar>
 
-  @if (showPredictions() && predictions().length > 0) {
-    <ion-list class="predictions-list" lines="full">
-      @for (prediction of predictions(); track prediction.placeId) {
-        <ion-item
-          button
-          detail="false"
-          (click)="onPredictionSelect(prediction)"
-          class="prediction-item">
-          <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-          <ion-label>
-            <h3>{{ prediction.mainText }}</h3>
-            <p>{{ prediction.secondaryText }}</p>
-          </ion-label>
-        </ion-item>
+    <!-- Current location button -->
+    @if (!hasSearchQuery()) {
+      <button class="current-location-btn" (click)="onUseCurrentLocation()" title="Use current location">
+        <ion-icon name="locate-outline"></ion-icon>
+      </button>
+    }
+
+    @if (isSearching()) {
+      <div class="search-loading-inline">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+    }
+  </div>
+
+  <!-- Dropdown with recent searches and predictions -->
+  @if (showPredictions()) {
+    <div class="dropdown-container">
+      <!-- Recent Searches Section -->
+      @if (recentSearches().length > 0 && !hasSearchQuery()) {
+        <div class="dropdown-section">
+          <div class="section-header">
+            <span class="section-title">Recent</span>
+            <button class="clear-btn" (click)="clearRecentSearches()">Clear</button>
+          </div>
+          @for (place of recentSearches(); track place.placeId) {
+            <div class="dropdown-item" (click)="onRecentSearchSelect(place)">
+              <ion-icon name="time-outline" class="item-icon" color="medium"></ion-icon>
+              <div class="item-content">
+                <span class="item-title">{{ place.name }}</span>
+                <span class="item-subtitle">{{ place.formattedAddress }}</span>
+              </div>
+            </div>
+          }
+        </div>
       }
-    </ion-list>
-  }
 
-  @if (isSearching()) {
-    <div class="search-loading">
-      <ion-spinner name="crescent"></ion-spinner>
+      <!-- Search Results Section -->
+      @if (predictions().length > 0) {
+        <div class="dropdown-section">
+          @if (recentSearches().length > 0) {
+            <div class="section-header">
+              <span class="section-title">Results</span>
+            </div>
+          }
+          @for (prediction of predictions(); track prediction.placeId) {
+            <div class="dropdown-item" (click)="onPredictionSelect(prediction)">
+              <ion-icon name="location-outline" class="item-icon" color="medium"></ion-icon>
+              <div class="item-content">
+                <span class="item-title">{{ prediction.mainText }}</span>
+                <span class="item-subtitle">{{ prediction.secondaryText }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (hasSearchQuery() && predictions().length === 0 && !isSearching()) {
+        <div class="empty-state">
+          <ion-icon name="search-outline" class="empty-icon" color="medium"></ion-icon>
+          <span class="empty-text">No results found</span>
+        </div>
+      }
     </div>
   }
 </div>

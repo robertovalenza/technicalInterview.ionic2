@@ -1,8 +1,8 @@
 export const environment = {
   production: false,
-  googleMapsApiKey: 'YOUR_GOOGLE_MAPS_API_KEY_HERE',
-  defaultMapCenter: { lat: 40.7128, lng: -74.0060 }, // New York City fallback
+  googleMapsApiKey: 'AIzaSyA6a68XV3iqNR2ds6fd3O7R96Y8xRlKDSo',
+  defaultMapCenter: { lat: 40.7128, lng: -74.006 }, // New York City fallback
   defaultZoom: 14,
   autocompleteDebounceMs: 300,
-  maxRouteAlternatives: 3
+  maxRouteAlternatives: 3,
 };

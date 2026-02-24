@@ -5,7 +5,7 @@ import {
   inject,
   signal,
   computed,
-  effect
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -17,17 +17,20 @@ import {
   IonFabButton,
   IonIcon,
   ToastController,
-  AlertController
+  AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { locateOutline, locationOutline } from 'ionicons/icons';
+import { locateOutline, locationOutline, navigate } from 'ionicons/icons';
 import { Position } from '@capacitor/geolocation';
 
 import { MapViewerComponent } from '../../components/map-viewer/map-viewer.component';
 import { LocationSearchComponent } from '../../components/location-search/location-search.component';
 import { RoutePanelComponent } from '../../components/route-panel/route-panel.component';
 
-import { GeolocationService, GeolocationError } from '../../services/geolocation.service';
+import {
+  GeolocationService,
+  GeolocationError,
+} from '../../services/geolocation.service';
 import { PlacesService, PlaceResult } from '../../services/places.service';
 import { DirectionsService, Route } from '../../services/directions.service';
 import { MapConfigService } from '../../services/map-config.service';
@@ -46,10 +49,10 @@ import { MapConfigService } from '../../services/map-config.service';
     IonIcon,
     MapViewerComponent,
     LocationSearchComponent,
-    RoutePanelComponent
+    RoutePanelComponent,
   ],
   templateUrl: './map.page.html',
-  styleUrls: ['./map.page.scss']
+  styleUrls: ['./map.page.scss'],
 })
 export class MapPage implements OnInit, OnDestroy {
   private geolocationService = inject(GeolocationService);
@@ -67,7 +70,7 @@ export class MapPage implements OnInit, OnDestroy {
   readonly isCalculatingRoute = signal<boolean>(false);
   readonly showLocationBanner = signal<boolean>(false);
   readonly mapCenter = signal<google.maps.LatLngLiteral>(
-    this.mapConfigService.getDefaultCenter()
+    this.mapConfigService.getDefaultCenter(),
   );
 
   readonly originLocation = computed(() => {
@@ -75,7 +78,7 @@ export class MapPage implements OnInit, OnDestroy {
     if (!position) return null;
     return {
       lat: position.coords.latitude,
-      lng: position.coords.longitude
+      lng: position.coords.longitude,
     };
   });
 
@@ -86,7 +89,7 @@ export class MapPage implements OnInit, OnDestroy {
   });
 
   readonly routePaths = computed(() => {
-    return this.routes().map(route => route.path);
+    return this.routes().map((route) => route.path);
   });
 
   readonly hasLocationPermission = computed(() => {
@@ -94,7 +97,7 @@ export class MapPage implements OnInit, OnDestroy {
   });
 
   constructor() {
-    addIcons({ locateOutline, locationOutline });
+    addIcons({ locationOutline, navigate });
 
     effect(() => {
       this.currentPosition.set(this.geolocationService.currentPosition());
@@ -112,7 +115,7 @@ export class MapPage implements OnInit, OnDestroy {
       if (position) {
         this.mapCenter.set({
           lat: position.coords.latitude,
-          lng: position.coords.longitude
+          lng: position.coords.longitude,
         });
       }
     });
@@ -140,7 +143,8 @@ export class MapPage implements OnInit, OnDestroy {
       if (!granted) {
         this.showLocationError({
           code: 'PERMISSION_DENIED',
-          message: 'Location access is required for routing. Please enable in settings.'
+          message:
+            'Location access is required for routing. Please enable in settings.',
         });
         return;
       }
@@ -157,7 +161,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   private async calculateRoutes(
     origin: google.maps.LatLngLiteral,
-    destination: google.maps.LatLngLiteral
+    destination: google.maps.LatLngLiteral,
   ): Promise<void> {
     this.isCalculatingRoute.set(true);
     this.selectedRouteIndex.set(0);
@@ -165,7 +169,10 @@ export class MapPage implements OnInit, OnDestroy {
     await this.showToast('Calculating routes...');
 
     try {
-      const result = await this.directionsService.calculateRoute(origin, destination);
+      const result = await this.directionsService.calculateRoute(
+        origin,
+        destination,
+      );
       this.routes.set(result.routes);
       if (result.routes.length > 0) {
         await this.showToast('Routes updated');
@@ -201,8 +208,29 @@ export class MapPage implements OnInit, OnDestroy {
     if (position) {
       this.mapCenter.set({
         lat: position.coords.latitude,
-        lng: position.coords.longitude
+        lng: position.coords.longitude,
       });
+    } else {
+      const error = this.geolocationService.locationError();
+      if (error) {
+        this.showLocationError(error);
+      }
+    }
+  }
+
+  async useCurrentLocationAsDestination(): Promise<void> {
+    const position = await this.geolocationService.getCurrentPosition();
+    if (position) {
+      const currentLocation: PlaceResult = {
+        placeId: 'current-location',
+        name: 'My Location',
+        formattedAddress: 'Current GPS Location',
+        location: {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        },
+      };
+      this.selectedDestination.set(currentLocation);
     } else {
       const error = this.geolocationService.locationError();
       if (error) {
@@ -215,7 +243,7 @@ export class MapPage implements OnInit, OnDestroy {
     const alert = await this.alertController.create({
       header: 'Location Error',
       message: error.message,
-      buttons: [{ text: 'OK', role: 'cancel' }]
+      buttons: [{ text: 'OK', role: 'cancel' }],
     });
     await alert.present();
   }
@@ -224,7 +252,7 @@ export class MapPage implements OnInit, OnDestroy {
     const alert = await this.alertController.create({
       header: 'Route Error',
       message: message,
-      buttons: ['OK']
+      buttons: ['OK'],
     });
     await alert.present();
   }
@@ -233,7 +261,7 @@ export class MapPage implements OnInit, OnDestroy {
     const toast = await this.toastController.create({
       message: message,
       duration: 2000,
-      position: 'bottom'
+      position: 'bottom',
     });
     await toast.present();
   }
