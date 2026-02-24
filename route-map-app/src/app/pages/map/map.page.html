@@ -29,12 +29,10 @@
       [activeRouteIndex]="selectedRouteIndex()">
     </app-map-viewer>
 
-    <!-- Recenter button -->
-    <ion-fab class="recenter-fab">
-      <ion-fab-button (click)="recenterOnCurrentLocation()" size="small">
-        <ion-icon name="locate-outline"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
+    <!-- Recenter button - Google Maps style blue arrow -->
+    <button class="recenter-button" (click)="recenterOnCurrentLocation()">
+      <ion-icon name="navigate"></ion-icon>
+    </button>
   </div>
 
   <!-- Bottom sheet route panel -->
