@@ -53,7 +53,7 @@ export class LocationSearchComponent {
 
   private searchSubject = new Subject<string>();
   private readonly STORAGE_KEY = 'route_map_recent_searches';
-  private readonly MAX_RECENT = 5;
+  private readonly MAX_RECENT = 4;
 
   constructor() {
     addIcons({ locationOutline, timeOutline });
@@ -161,7 +161,7 @@ export class LocationSearchComponent {
     this.searchQuery.set(place.name);
     this.hasSearchQuery.set(true);
     this.showPredictions.set(false);
-    this.saveRecentSearch(place);
+    // Don't save/reorder - keep history as-is when selecting from history
     this.placeSelected.emit(place);
   }
 
