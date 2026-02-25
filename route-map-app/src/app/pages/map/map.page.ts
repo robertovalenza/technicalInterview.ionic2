@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
 import {
   IonContent,
   IonIcon,
-  ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -48,7 +47,6 @@ export class MapPage implements OnInit, OnDestroy {
   private geolocationService = inject(GeolocationService);
   private directionsService = inject(DirectionsService);
   private mapConfigService = inject(MapConfigService);
-  private toastController = inject(ToastController);
   private alertController = inject(AlertController);
 
   readonly currentPosition = signal<Position | null>(null);
@@ -284,14 +282,5 @@ export class MapPage implements OnInit, OnDestroy {
       buttons: ['OK'],
     });
     await alert.present();
-  }
-
-  private async showToast(message: string): Promise<void> {
-    const toast = await this.toastController.create({
-      message: message,
-      duration: 2000,
-      position: 'bottom',
-    });
-    await toast.present();
   }
 }

@@ -83,7 +83,7 @@
         </div>
       }
 
-      @if (hasSearchQuery() && predictions().length === 0 && !isSearching()) {
+      @if (hasSearchQuery() && predictions().length === 0 && !isSearching() && recentSearches().length === 0) {
         <div class="empty-state">
           <ion-icon
             name="search-outline"

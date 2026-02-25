@@ -96,6 +96,7 @@ export class LocationSearchComponent {
       this.searchSubject.next(query);
     } else {
       this.predictions.set([]);
+      this.showPredictionList();
     }
   }
 
@@ -112,9 +113,7 @@ export class LocationSearchComponent {
 
   private saveRecentSearch(place: PlaceResult): void {
     const current = this.recentSearches();
-    // Remove if already exists
     const filtered = current.filter((p) => p.placeId !== place.placeId);
-    // Add to beginning
     const updated = [place, ...filtered].slice(0, this.MAX_RECENT);
     this.recentSearches.set(updated);
     try {
@@ -166,6 +165,7 @@ export class LocationSearchComponent {
 
   onSearchClear(): void {
     this.searchQuery.set('');
+    this.hasSearchQuery.set(false);
     this.predictions.set([]);
     this.showPredictions.set(false);
     this.selectedPlace.set(null);
@@ -179,7 +179,7 @@ export class LocationSearchComponent {
   }
 
   showPredictionList(): void {
-    if (this.predictions().length > 0 || this.recentSearches().length > 0) {
+    if (this.recentSearches().length > 0 || this.predictions().length > 0) {
       this.showPredictions.set(true);
     }
   }
