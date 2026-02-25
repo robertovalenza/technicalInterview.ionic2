@@ -166,17 +166,12 @@ export class MapPage implements OnInit, OnDestroy {
     this.isCalculatingRoute.set(true);
     this.selectedRouteIndex.set(0);
 
-    await this.showToast('Calculating routes...');
-
     try {
       const result = await this.directionsService.calculateRoute(
         origin,
         destination,
       );
       this.routes.set(result.routes);
-      if (result.routes.length > 0) {
-        await this.showToast('Routes updated');
-      }
     } catch (error: any) {
       this.routes.set([]);
       await this.showRouteError(error.message || 'Failed to calculate routes');
