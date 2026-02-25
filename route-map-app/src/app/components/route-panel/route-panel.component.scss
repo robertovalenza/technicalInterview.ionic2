@@ -7,6 +7,8 @@
   margin: 0;
   border-radius: 12px 12px 0 0;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  --background: #ffffff;
+  background: #ffffff;
 
   &.loading {
     padding: 16px;
@@ -14,6 +16,8 @@
 
   ion-card-content {
     padding: 16px;
+    --background: #ffffff;
+    background: #ffffff;
   }
 }
 
@@ -27,12 +31,12 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: var(--ion-color-dark);
+    color: #202124;
   }
 
   .routes-count {
     font-size: 12px;
-    color: var(--ion-color-medium);
+    color: #5f6368;
   }
 }
 
@@ -46,11 +50,13 @@
   --padding-start: 12px;
   --padding-end: 12px;
   --min-height: 64px;
-  --background: var(--ion-color-light);
+  --background: #f8f9fa;
+  background: #f8f9fa;
   border-radius: 8px;
 
   &.selected {
-    --background: var(--ion-color-primary-tint);
+    --background: #e8f0fe;
+    background: #e8f0fe;
   }
 }
 
@@ -73,7 +79,7 @@
 .route-label {
   font-size: 14px;
   font-weight: 500;
-  color: var(--ion-color-dark);
+  color: #202124;
 }
 
 .best-badge {
@@ -87,14 +93,14 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: var(--ion-color-medium);
+  color: #5f6368;
 
   .duration {
     display: flex;
     align-items: center;
     gap: 4px;
     font-weight: 500;
-    color: var(--ion-color-dark);
+    color: #202124;
 
     ion-icon {
       font-size: 14px;
@@ -102,7 +108,7 @@
   }
 
   .distance {
-    color: var(--ion-color-medium);
+    color: #5f6368;
   }
 }
 
@@ -112,6 +118,7 @@
   justify-content: center;
   gap: 12px;
   padding: 16px;
-  color: var(--ion-color-medium);
+  color: #5f6368;
   font-size: 14px;
+  background: #ffffff;
 }
