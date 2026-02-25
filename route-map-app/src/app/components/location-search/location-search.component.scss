@@ -8,7 +8,6 @@
   z-index: 1000;
 }
 
-// Search input wrapper with current location button
 .search-input-wrapper {
   position: relative;
   display: flex;
@@ -28,8 +27,6 @@
   border-radius: 28px;
   width: 100%;
 
-  // Mobile: full width (with container padding)
-  // Desktop: max-width for better aesthetics
   @media (min-width: 768px) {
     max-width: 600px;
     margin: 0 auto;
@@ -50,7 +47,6 @@
   }
 }
 
-// Current location button
 .current-location-btn {
   position: absolute;
   right: 48px;
@@ -78,7 +74,6 @@
   }
 }
 
-// Loading spinner inline
 .search-loading-inline {
   position: absolute;
   right: 48px;
@@ -93,7 +88,6 @@
   }
 }
 
-// Dropdown container
 .dropdown-container {
   position: absolute;
   top: calc(100% + 8px);
@@ -126,7 +120,6 @@
   }
 }
 
-// Dropdown sections
 .dropdown-section {
   padding: 8px 0;
 
@@ -166,7 +159,6 @@
   }
 }
 
-// Dropdown items
 .dropdown-item {
   display: flex;
   align-items: flex-start;
@@ -217,7 +209,6 @@
   text-overflow: ellipsis;
 }
 
-// Empty state
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -236,7 +227,6 @@
   font-size: 14px;
 }
 
-// Legacy styles for compatibility
 .predictions-list {
   display: none;
 }

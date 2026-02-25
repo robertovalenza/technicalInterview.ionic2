@@ -16,10 +16,11 @@ export interface PlaceResult {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PlacesService {
-  private autocompleteService: google.maps.places.AutocompleteService | null = null;
+  private autocompleteService: google.maps.places.AutocompleteService | null =
+    null;
   private placesService: google.maps.places.PlacesService | null = null;
   private predictionsCache = new Map<string, PlacePrediction[]>();
   private readonly cacheMaxSize = 50;
@@ -37,7 +38,6 @@ export class PlacesService {
       return [];
     }
 
-    // Check cache
     if (this.predictionsCache.has(query)) {
       return this.predictionsCache.get(query)!;
     }
@@ -45,18 +45,23 @@ export class PlacesService {
     this.initializeServices();
 
     if (!this.autocompleteService) {
-      throw new Error('Google Places Autocomplete service not available');
+      throw new Error('Servizio Google Places Autocomplete non disponibile');
     }
 
     return new Promise((resolve, reject) => {
       this.autocompleteService!.getPlacePredictions(
         {
           input: query,
-          types: ['geocode', 'establishment']
+          types: ['geocode', 'establishment'],
         },
         (predictions, status) => {
-          if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
-            if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          if (
+            status !== google.maps.places.PlacesServiceStatus.OK ||
+            !predictions
+          ) {
+            if (
+              status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS
+            ) {
               resolve([]);
               return;
             }
@@ -64,18 +69,21 @@ export class PlacesService {
             return;
           }
 
-          const results: PlacePrediction[] = predictions.map(prediction => ({
+          const results: PlacePrediction[] = predictions.map((prediction) => ({
             placeId: prediction.place_id,
             description: prediction.description,
-            mainText: prediction.structured_formatting?.main_text || prediction.description,
-            secondaryText: prediction.structured_formatting?.secondary_text || ''
+            mainText:
+              prediction.structured_formatting?.main_text ||
+              prediction.description,
+            secondaryText:
+              prediction.structured_formatting?.secondary_text || '',
           }));
 
           // Cache results
           this.addToCache(query, results);
 
           resolve(results);
-        }
+        },
       );
     });
   }
@@ -84,7 +92,6 @@ export class PlacesService {
     this.initializeServices();
 
     if (!this.placesService) {
-      // Create a dummy map element for PlacesService
       const dummyMap = document.createElement('div');
       this.placesService = new google.maps.places.PlacesService(dummyMap);
     }
@@ -93,7 +100,7 @@ export class PlacesService {
       this.placesService!.getDetails(
         {
           placeId: placeId,
-          fields: ['place_id', 'name', 'formatted_address', 'geometry']
+          fields: ['place_id', 'name', 'formatted_address', 'geometry'],
         },
         (place, status) => {
           if (status !== google.maps.places.PlacesServiceStatus.OK || !place) {
@@ -102,22 +109,22 @@ export class PlacesService {
           }
 
           if (!place.geometry?.location) {
-            reject(new Error('Place has no location data'));
+            reject(new Error('Il luogo non ha dati di posizione'));
             return;
           }
 
           const result: PlaceResult = {
             placeId: place.place_id!,
-            name: place.name || place.formatted_address || 'Unknown Place',
+            name: place.name || place.formatted_address || 'Luogo Sconosciuto',
             formattedAddress: place.formatted_address || '',
             location: {
               lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng()
-            }
+              lng: place.geometry.location.lng(),
+            },
           };
 
           resolve(result);
-        }
+        },
       );
     });
   }
@@ -127,7 +134,6 @@ export class PlacesService {
   }
 
   private addToCache(query: string, results: PlacePrediction[]): void {
-    // Implement LRU cache
     if (this.predictionsCache.size >= this.cacheMaxSize) {
       const firstKey = this.predictionsCache.keys().next().value;
       if (firstKey) {

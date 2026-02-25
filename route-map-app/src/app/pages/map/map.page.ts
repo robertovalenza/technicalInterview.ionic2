@@ -9,18 +9,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
   IonContent,
-  IonFab,
-  IonFabButton,
   IonIcon,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { locateOutline, locationOutline, navigate } from 'ionicons/icons';
+import { locationOutline, navigate } from 'ionicons/icons';
 import { Position } from '@capacitor/geolocation';
 
 import { MapViewerComponent } from '../../components/map-viewer/map-viewer.component';
@@ -31,7 +26,7 @@ import {
   GeolocationService,
   GeolocationError,
 } from '../../services/geolocation.service';
-import { PlacesService, PlaceResult } from '../../services/places.service';
+import { PlaceResult } from '../../services/places.service';
 import { DirectionsService, Route } from '../../services/directions.service';
 import { MapConfigService } from '../../services/map-config.service';
 
@@ -40,12 +35,7 @@ import { MapConfigService } from '../../services/map-config.service';
   standalone: true,
   imports: [
     CommonModule,
-    IonHeader,
-    IonToolbar,
-    IonTitle,
     IonContent,
-    IonFab,
-    IonFabButton,
     IonIcon,
     MapViewerComponent,
     LocationSearchComponent,
@@ -72,6 +62,8 @@ export class MapPage implements OnInit, OnDestroy {
   readonly mapCenter = signal<google.maps.LatLngLiteral>(
     this.mapConfigService.getDefaultCenter(),
   );
+  readonly deviceHeading = signal<number | null>(null);
+  private headingListener: any = null;
 
   readonly originLocation = computed(() => {
     const position = this.currentPosition();
@@ -127,13 +119,50 @@ export class MapPage implements OnInit, OnDestroy {
         this.calculateRoutes(origin, destination.location);
       }
     });
+
+    effect(() => {
+      const destination = this.selectedDestination();
+      if (destination) {
+        this.mapCenter.set(destination.location);
+      }
+    });
   }
 
   async ngOnInit(): Promise<void> {
     await this.initializeLocation();
+    this.startHeadingListener();
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.stopHeadingListener();
+  }
+
+  private startHeadingListener(): void {
+    if (window.DeviceOrientationEvent) {
+      this.headingListener = (event: DeviceOrientationEvent) => {
+        let heading = event.alpha || 0;
+
+        if ((event as any).webkitCompassHeading) {
+          heading = (event as any).webkitCompassHeading;
+        } else if (event.alpha !== null) {
+          heading = 360 - event.alpha;
+        }
+
+        heading = (heading + 360) % 360;
+
+        this.deviceHeading.set(heading);
+      };
+
+      window.addEventListener('deviceorientation', this.headingListener);
+    }
+  }
+
+  private stopHeadingListener(): void {
+    if (this.headingListener) {
+      window.removeEventListener('deviceorientation', this.headingListener);
+      this.headingListener = null;
+    }
+  }
 
   private async initializeLocation(): Promise<void> {
     await this.geolocationService.checkPermissions();
@@ -144,7 +173,7 @@ export class MapPage implements OnInit, OnDestroy {
         this.showLocationError({
           code: 'PERMISSION_DENIED',
           message:
-            'Location access is required for routing. Please enable in settings.',
+            'Accesso alla posizione richiesto per il percorso. Abilita nelle impostazioni.',
         });
         return;
       }
@@ -174,7 +203,6 @@ export class MapPage implements OnInit, OnDestroy {
       this.routes.set(result.routes);
     } catch (error: any) {
       this.routes.set([]);
-      await this.showRouteError(error.message || 'Failed to calculate routes');
     } finally {
       this.isCalculatingRoute.set(false);
     }
@@ -191,11 +219,17 @@ export class MapPage implements OnInit, OnDestroy {
   }
 
   onSearchError(errorMessage: string): void {
-    this.showRouteError(errorMessage);
+    console.warn('Search error:', errorMessage);
   }
 
   onRouteSelected(index: number): void {
     this.selectedRouteIndex.set(index);
+  }
+
+  onPanelClosed(): void {
+    this.routes.set([]);
+    this.selectedDestination.set(null);
+    this.selectedRouteIndex.set(0);
   }
 
   async recenterOnCurrentLocation(): Promise<void> {
@@ -218,8 +252,8 @@ export class MapPage implements OnInit, OnDestroy {
     if (position) {
       const currentLocation: PlaceResult = {
         placeId: 'current-location',
-        name: 'My Location',
-        formattedAddress: 'Current GPS Location',
+        name: 'La Mia Posizione',
+        formattedAddress: 'Posizione GPS Attuale',
         location: {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
@@ -236,7 +270,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   private async showLocationError(error: GeolocationError): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'Location Error',
+      header: 'Errore Posizione',
       message: error.message,
       buttons: [{ text: 'OK', role: 'cancel' }],
     });
@@ -245,7 +279,7 @@ export class MapPage implements OnInit, OnDestroy {
 
   private async showRouteError(message: string): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'Route Error',
+      header: 'Errore Percorso',
       message: message,
       buttons: ['OK'],
     });

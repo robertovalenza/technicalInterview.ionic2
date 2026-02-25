@@ -7,17 +7,16 @@ export interface GeolocationError {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class GeolocationService {
-  // State signals
   readonly currentPosition = signal<Position | null>(null);
   readonly locationError = signal<GeolocationError | null>(null);
   readonly isLocating = signal<boolean>(false);
   readonly permissionStatus = signal<'granted' | 'denied' | 'prompt'>('prompt');
-
-  // Computed signals
-  readonly hasPermission = computed(() => this.permissionStatus() === 'granted');
+  readonly hasPermission = computed(
+    () => this.permissionStatus() === 'granted',
+  );
   readonly hasError = computed(() => this.locationError() !== null);
 
   constructor() {}
@@ -25,7 +24,9 @@ export class GeolocationService {
   async requestPermissions(): Promise<boolean> {
     try {
       const permission = await Geolocation.requestPermissions();
-      this.permissionStatus.set(permission.location === 'granted' ? 'granted' : 'denied');
+      this.permissionStatus.set(
+        permission.location === 'granted' ? 'granted' : 'denied',
+      );
       return permission.location === 'granted';
     } catch (error) {
       this.permissionStatus.set('denied');
@@ -36,7 +37,9 @@ export class GeolocationService {
   async checkPermissions(): Promise<void> {
     try {
       const permission = await Geolocation.checkPermissions();
-      this.permissionStatus.set(permission.location === 'granted' ? 'granted' : 'denied');
+      this.permissionStatus.set(
+        permission.location === 'granted' ? 'granted' : 'denied',
+      );
     } catch (error) {
       this.permissionStatus.set('denied');
     }
@@ -49,7 +52,7 @@ export class GeolocationService {
     try {
       const position = await Geolocation.getCurrentPosition({
         enableHighAccuracy: true,
-        timeout: 10000
+        timeout: 10000,
       });
 
       this.currentPosition.set(position);
@@ -63,7 +66,9 @@ export class GeolocationService {
     }
   }
 
-  async watchPosition(callback: (position: Position) => void): Promise<string | null> {
+  async watchPosition(
+    callback: (position: Position) => void,
+  ): Promise<string | null> {
     try {
       const watchId = await Geolocation.watchPosition(
         { enableHighAccuracy: true },
@@ -74,7 +79,7 @@ export class GeolocationService {
           } else if (err) {
             this.locationError.set(this.parseGeolocationError(err));
           }
-        }
+        },
       );
       return watchId;
     } catch (error) {
@@ -94,22 +99,26 @@ export class GeolocationService {
       case 1:
         return {
           code: 'PERMISSION_DENIED',
-          message: 'Location access was denied. Please enable location permissions in settings.'
+          message:
+            'Accesso alla posizione negato. Abilita i permessi nelle impostazioni.',
         };
       case 2:
         return {
           code: 'POSITION_UNAVAILABLE',
-          message: 'Unable to determine your location. Please check GPS settings.'
+          message:
+            'Impossibile determinare la posizione. Controlla le impostazioni GPS.',
         };
       case 3:
         return {
           code: 'TIMEOUT',
-          message: 'Location request timed out. Please try again.'
+          message: 'Richiesta posizione scaduta. Riprova.',
         };
       default:
         return {
           code: 'UNKNOWN',
-          message: error?.message || 'An unknown error occurred while getting location.'
+          message:
+            error?.message ||
+            'Errore sconosciuto durante il recupero della posizione.',
         };
     }
   }

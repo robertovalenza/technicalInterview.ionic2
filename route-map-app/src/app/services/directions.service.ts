@@ -31,7 +31,7 @@ export interface DirectionsError {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DirectionsService {
   private directionsService: google.maps.DirectionsService | null = null;
@@ -46,7 +46,7 @@ export class DirectionsService {
 
   async calculateRoute(
     origin: google.maps.LatLngLiteral,
-    destination: google.maps.LatLngLiteral
+    destination: google.maps.LatLngLiteral,
   ): Promise<RouteResult> {
     this.initializeService();
 
@@ -63,7 +63,7 @@ export class DirectionsService {
           destination: destination,
           travelMode: google.maps.TravelMode.DRIVING,
           provideRouteAlternatives: maxAlternatives > 1,
-          optimizeWaypoints: false
+          optimizeWaypoints: false,
         },
         (result, status) => {
           if (status !== google.maps.DirectionsStatus.OK || !result) {
@@ -77,16 +77,16 @@ export class DirectionsService {
           resolve({
             routes,
             origin,
-            destination
+            destination,
           });
-        }
+        },
       );
     });
   }
 
   private parseRoutes(result: google.maps.DirectionsResult): Route[] {
     return result.routes.map((route, index) => {
-      const leg = route.legs[0]; // Single leg for simple origin-destination
+      const leg = route.legs[0];
 
       return {
         index,
@@ -95,19 +95,18 @@ export class DirectionsService {
         duration: leg.duration?.text || '',
         distanceValue: leg.distance?.value || 0,
         durationValue: leg.duration?.value || 0,
-        steps: leg.steps.map(step => ({
+        steps: leg.steps.map((step) => ({
           instructions: step.instructions,
           distance: step.distance?.text || '',
-          duration: step.duration?.text || ''
+          duration: step.duration?.text || '',
         })),
         path: this.decodePolyline(route.overview_polyline),
-        polyline: route.overview_polyline
+        polyline: route.overview_polyline,
       };
     });
   }
 
   private decodePolyline(polyline: string): google.maps.LatLngLiteral[] {
-    // Simple polyline decoder
     const path: google.maps.LatLngLiteral[] = [];
     let index = 0;
     const len = polyline.length;
@@ -125,7 +124,7 @@ export class DirectionsService {
         shift += 5;
       } while (b >= 0x20);
 
-      const dlat = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
+      const dlat = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
       lat += dlat;
 
       shift = 0;
@@ -137,55 +136,58 @@ export class DirectionsService {
         shift += 5;
       } while (b >= 0x20);
 
-      const dlng = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
+      const dlng = (result & 1) !== 0 ? ~(result >> 1) : result >> 1;
       lng += dlng;
 
       path.push({
         lat: lat / 1e5,
-        lng: lng / 1e5
+        lng: lng / 1e5,
       });
     }
 
     return path;
   }
 
-  private parseDirectionsError(status: google.maps.DirectionsStatus): DirectionsError {
+  private parseDirectionsError(
+    status: google.maps.DirectionsStatus,
+  ): DirectionsError {
     switch (status) {
       case google.maps.DirectionsStatus.ZERO_RESULTS:
         return {
           code: 'ZERO_RESULTS',
-          message: 'No route found between these locations. Please try different locations.'
+          message:
+            'Nessun percorso trovato tra queste posizioni. Prova posizioni diverse.',
         };
       case google.maps.DirectionsStatus.NOT_FOUND:
         return {
           code: 'NOT_FOUND',
-          message: 'One or more locations could not be found. Please check the addresses.'
+          message: 'Una o più posizioni non trovate. Controlla gli indirizzi.',
         };
       case google.maps.DirectionsStatus.MAX_WAYPOINTS_EXCEEDED:
         return {
           code: 'MAX_WAYPOINTS_EXCEEDED',
-          message: 'Too many waypoints in the route request.'
+          message: 'Troppi punti intermedi nella richiesta.',
         };
       case google.maps.DirectionsStatus.INVALID_REQUEST:
         return {
           code: 'INVALID_REQUEST',
-          message: 'Invalid route request. Please try again.'
+          message: 'Richiesta percorso non valida. Riprova.',
         };
       case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
         return {
           code: 'OVER_QUERY_LIMIT',
-          message: 'Too many requests. Please wait and try again.'
+          message: 'Troppe richieste. Aspetta e riprova.',
         };
       case google.maps.DirectionsStatus.REQUEST_DENIED:
         return {
           code: 'REQUEST_DENIED',
-          message: 'Route request was denied. Please check your API key.'
+          message: 'Richiesta percorso negata. Controlla la tua API key.',
         };
       case google.maps.DirectionsStatus.UNKNOWN_ERROR:
       default:
         return {
           code: 'UNKNOWN_ERROR',
-          message: 'An unexpected error occurred. Please try again.'
+          message: 'Errore imprevisto. Riprova.',
         };
     }
   }

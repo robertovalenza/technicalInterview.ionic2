@@ -69,7 +69,7 @@ ion-content.map-content {
   position: absolute;
   bottom: 196px;
   right: 10px;
-  z-index: 500;
+  z-index: 100;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -93,7 +93,6 @@ ion-content.map-content {
   ion-icon {
     font-size: 20px;
     color: #1a73e8;
-    transform: rotate(15deg);
   }
 }
 

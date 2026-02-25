@@ -1,50 +1,48 @@
-<!-- No header - full screen map like Google Maps -->
-
 <ion-content [fullscreen]="true" class="map-content">
-  <!-- Floating search bar -->
   <div class="floating-search-container">
     <app-location-search
-      placeholder="Search destination..."
       (placeSelected)="onDestinationSelected($event)"
       (searchCleared)="onSearchCleared()"
       (searchError)="onSearchError($event)"
-      (useCurrentLocation)="useCurrentLocationAsDestination()">
+      (useCurrentLocation)="useCurrentLocationAsDestination()"
+    >
     </app-location-search>
   </div>
 
   @if (showLocationBanner()) {
-    <div class="location-banner">
-      <ion-icon name="location-outline"></ion-icon>
-      <span>Enable location access for routing</span>
-    </div>
+  <div class="location-banner">
+    <ion-icon name="location-outline"></ion-icon>
+    <span>Abilita l'accesso alla posizione per il percorso</span>
+  </div>
   }
 
-  <!-- Full screen map -->
   <div class="map-wrapper">
     <app-map-viewer
       [center]="mapCenter()"
       [zoom]="16"
       [originMarker]="originLocation()"
+      [heading]="deviceHeading()"
       [destinationMarker]="destinationLocation()"
       [routes]="routePaths()"
-      [activeRouteIndex]="selectedRouteIndex()">
+      [activeRouteIndex]="selectedRouteIndex()"
+    >
     </app-map-viewer>
 
-    <!-- Recenter button - Google Maps style blue arrow -->
     <button class="recenter-button" (click)="recenterOnCurrentLocation()">
       <ion-icon name="navigate"></ion-icon>
     </button>
   </div>
 
-  <!-- Bottom sheet route panel -->
   @if (routes().length > 0 || isCalculatingRoute()) {
-    <div class="route-panel-container">
-      <app-route-panel
-        [routes]="routes()"
-        [selectedRouteIndex]="selectedRouteIndex()"
-        [isLoading]="isCalculatingRoute()"
-        (routeSelected)="onRouteSelected($event)">
-      </app-route-panel>
-    </div>
+  <div class="route-panel-container">
+    <app-route-panel
+      [routes]="routes()"
+      [selectedRouteIndex]="selectedRouteIndex()"
+      [isLoading]="isCalculatingRoute()"
+      (routeSelected)="onRouteSelected($event)"
+      (panelClosed)="onPanelClosed()"
+    >
+    </app-route-panel>
+  </div>
   }
 </ion-content>

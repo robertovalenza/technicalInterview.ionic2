@@ -1,5 +1,4 @@
 <div class="search-container">
-  <!-- Search input with current location button -->
   <div class="search-input-wrapper">
     <ion-searchbar
       [value]="searchQuery()"
@@ -12,12 +11,16 @@
       (ionBlur)="hidePredictions()"
       class="search-input"
       show-clear-button="always"
-      animated="true">
+      animated="true"
+    >
     </ion-searchbar>
 
-    <!-- Current location button -->
     @if (!hasSearchQuery()) {
-      <button class="current-location-btn" (click)="onUseCurrentLocation()" title="Use current location">
+      <button
+        class="current-location-btn"
+        (click)="onUseCurrentLocation()"
+        title="Usa posizione attuale"
+      >
         <ion-icon name="locate-outline"></ion-icon>
       </button>
     }
@@ -29,19 +32,23 @@
     }
   </div>
 
-  <!-- Dropdown with recent searches and predictions -->
   @if (showPredictions()) {
     <div class="dropdown-container">
-      <!-- Recent Searches Section -->
       @if (recentSearches().length > 0 && !hasSearchQuery()) {
         <div class="dropdown-section">
           <div class="section-header">
-            <span class="section-title">Recent</span>
-            <button class="clear-btn" (click)="clearRecentSearches()">Clear</button>
+            <span class="section-title">Recenti</span>
+            <button class="clear-btn" (click)="clearRecentSearches()">
+              Cancella
+            </button>
           </div>
           @for (place of recentSearches(); track place.placeId) {
             <div class="dropdown-item" (click)="onRecentSearchSelect(place)">
-              <ion-icon name="time-outline" class="item-icon" color="medium"></ion-icon>
+              <ion-icon
+                name="time-outline"
+                class="item-icon"
+                color="medium"
+              ></ion-icon>
               <div class="item-content">
                 <span class="item-title">{{ place.name }}</span>
                 <span class="item-subtitle">{{ place.formattedAddress }}</span>
@@ -51,31 +58,39 @@
         </div>
       }
 
-      <!-- Search Results Section -->
       @if (predictions().length > 0) {
         <div class="dropdown-section">
           @if (recentSearches().length > 0) {
             <div class="section-header">
-              <span class="section-title">Results</span>
+              <span class="section-title">Risultati</span>
             </div>
           }
           @for (prediction of predictions(); track prediction.placeId) {
             <div class="dropdown-item" (click)="onPredictionSelect(prediction)">
-              <ion-icon name="location-outline" class="item-icon" color="medium"></ion-icon>
+              <ion-icon
+                name="location-outline"
+                class="item-icon"
+                color="medium"
+              ></ion-icon>
               <div class="item-content">
                 <span class="item-title">{{ prediction.mainText }}</span>
-                <span class="item-subtitle">{{ prediction.secondaryText }}</span>
+                <span class="item-subtitle">{{
+                  prediction.secondaryText
+                }}</span>
               </div>
             </div>
           }
         </div>
       }
 
-      <!-- Empty State -->
       @if (hasSearchQuery() && predictions().length === 0 && !isSearching()) {
         <div class="empty-state">
-          <ion-icon name="search-outline" class="empty-icon" color="medium"></ion-icon>
-          <span class="empty-text">No results found</span>
+          <ion-icon
+            name="search-outline"
+            class="empty-icon"
+            color="medium"
+          ></ion-icon>
+          <span class="empty-text">Nessun risultato trovato</span>
         </div>
       }
     </div>

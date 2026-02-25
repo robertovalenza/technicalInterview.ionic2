@@ -5,7 +5,7 @@ import {
   output,
   viewChild,
   effect,
-  OnInit
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MapConfigService } from '../../services/map-config.service';
@@ -15,13 +15,14 @@ import { MapConfigService } from '../../services/map-config.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './map-viewer.component.html',
-  styleUrls: ['./map-viewer.component.scss']
+  styleUrls: ['./map-viewer.component.scss'],
 })
 export class MapViewerComponent implements OnInit {
   readonly mapContainer = viewChild.required<ElementRef>('mapContainer');
   readonly center = input<google.maps.LatLngLiteral | null>(null);
   readonly zoom = input<number>(14);
   readonly originMarker = input<google.maps.LatLngLiteral | null>(null);
+  readonly heading = input<number | null>(null);
   readonly destinationMarker = input<google.maps.LatLngLiteral | null>(null);
   readonly routes = input<google.maps.LatLngLiteral[][]>([]);
   readonly activeRouteIndex = input<number>(0);
@@ -50,7 +51,8 @@ export class MapViewerComponent implements OnInit {
 
     effect(() => {
       const origin = this.originMarker();
-      this.updateOriginMarker(origin);
+      const heading = this.heading();
+      this.updateOriginMarker(origin, heading ?? undefined);
     });
 
     effect(() => {
@@ -78,7 +80,6 @@ export class MapViewerComponent implements OnInit {
         return;
       }
 
-      // Poll for google.maps to be available
       const interval = setInterval(() => {
         if (typeof google !== 'undefined' && google.maps) {
           clearInterval(interval);
@@ -86,11 +87,10 @@ export class MapViewerComponent implements OnInit {
         }
       }, 100);
 
-      // Timeout after 10 seconds
       setTimeout(() => {
         clearInterval(interval);
         console.error('Google Maps failed to load within 10 seconds');
-        resolve(); // Resolve anyway to prevent hanging
+        resolve();
       }, 10000);
     });
   }
@@ -108,8 +108,8 @@ export class MapViewerComponent implements OnInit {
       streetViewControl: false,
       zoomControl: true,
       zoomControlOptions: {
-        position: google.maps.ControlPosition.RIGHT_BOTTOM
-      }
+        position: google.maps.ControlPosition.RIGHT_BOTTOM,
+      },
     };
 
     this.map = new google.maps.Map(mapElement, mapOptions);
@@ -118,7 +118,7 @@ export class MapViewerComponent implements OnInit {
       if (event.latLng) {
         this.mapClick.emit({
           lat: event.latLng.lat(),
-          lng: event.latLng.lng()
+          lng: event.latLng.lng(),
         });
       }
     });
@@ -126,26 +126,69 @@ export class MapViewerComponent implements OnInit {
     this.mapReady.emit(this.map);
   }
 
-  private updateOriginMarker(position: google.maps.LatLngLiteral | null): void {
+  private createLocationMarkerSVG(heading?: number): string {
+    const rotation = heading ?? 0;
+
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+        <defs>
+          <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+            <feOffset dx="0" dy="0" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g transform="translate(20, 20) rotate(${rotation})">
+          <!-- Direction cone/shadow (blue semitransparent) -->
+          <path d="M 0,-3 L 0,-12 L 5,0 L 0,-3" fill="rgba(66, 133, 244, 0.3)" stroke="none"/>
+          <path d="M 0,-3 L 0,-12 L -5,0 L 0,-3" fill="rgba(66, 133, 244, 0.3)" stroke="none"/>
+        </g>
+        <g transform="translate(20, 20)">
+          <!-- Outer white border -->
+          <circle cx="0" cy="0" r="8" fill="white" filter="url(#shadow)"/>
+          <!-- Blue circle -->
+          <circle cx="0" cy="0" r="6" fill="#4285F4"/>
+        </g>
+      </svg>
+    `;
+  }
+
+  private updateOriginMarker(
+    position: google.maps.LatLngLiteral | null,
+    heading?: number,
+  ): void {
     if (!this.map) return;
     if (this.originMarkerInstance) {
       this.originMarkerInstance.setMap(null);
       this.originMarkerInstance = null;
     }
     if (position) {
+      const svgString = this.createLocationMarkerSVG(heading);
+      const svgUrl =
+        'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svgString);
+
       this.originMarkerInstance = new google.maps.Marker({
         position: position,
         map: this.map,
-        title: 'Your Location',
+        title: 'La Tua Posizione',
         icon: {
-          url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-          scaledSize: new google.maps.Size(40, 40)
-        }
+          url: svgUrl,
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 20),
+        },
       });
     }
   }
 
-  private updateDestinationMarker(position: google.maps.LatLngLiteral | null): void {
+  private updateDestinationMarker(
+    position: google.maps.LatLngLiteral | null,
+  ): void {
     if (!this.map) return;
     if (this.destinationMarkerInstance) {
       this.destinationMarkerInstance.setMap(null);
@@ -155,21 +198,21 @@ export class MapViewerComponent implements OnInit {
       this.destinationMarkerInstance = new google.maps.Marker({
         position: position,
         map: this.map,
-        title: 'Destination',
+        title: 'Destinazione',
         icon: {
           url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
-          scaledSize: new google.maps.Size(40, 40)
-        }
+          scaledSize: new google.maps.Size(40, 40),
+        },
       });
     }
   }
 
   private updateRoutePolylines(
     routes: google.maps.LatLngLiteral[][],
-    activeIndex: number
+    activeIndex: number,
   ): void {
     if (!this.map) return;
-    this.routePolylines.forEach(polyline => polyline.setMap(null));
+    this.routePolylines.forEach((polyline) => polyline.setMap(null));
     this.routePolylines = [];
 
     routes.forEach((path, index) => {
@@ -180,15 +223,15 @@ export class MapViewerComponent implements OnInit {
         strokeColor: isActive ? '#4285F4' : '#9AA0A6',
         strokeOpacity: isActive ? 1.0 : 0.6,
         strokeWeight: isActive ? 5 : 3,
-        map: this.map
+        map: this.map,
       });
       this.routePolylines.push(polyline);
     });
 
     if (routes.length > 0 && this.map) {
       const bounds = new google.maps.LatLngBounds();
-      routes.forEach(path => {
-        path.forEach(point => bounds.extend(point));
+      routes.forEach((path) => {
+        path.forEach((point) => bounds.extend(point));
       });
       this.map.fitBounds(bounds, 50);
     }

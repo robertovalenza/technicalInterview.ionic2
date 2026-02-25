@@ -1,42 +1,38 @@
-import {
-  Component,
-  input,
-  output,
-  signal,
-  effect,
-  inject
-} from '@angular/core';
+import { Component, input, output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonSearchbar, IonList, IonItem, IonLabel, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { IonSearchbar, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { locationOutline, timeOutline } from 'ionicons/icons';
-import { PlacesService, PlacePrediction, PlaceResult } from '../../services/places.service';
+import {
+  PlacesService,
+  PlacePrediction,
+  PlaceResult,
+} from '../../services/places.service';
 import { MapConfigService } from '../../services/map-config.service';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, catchError, of, from } from 'rxjs';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  catchError,
+  of,
+  from,
+} from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-location-search',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonSearchbar,
-    IonList,
-    IonItem,
-    IonLabel,
-    IonIcon,
-    IonSpinner
-  ],
+  imports: [CommonModule, FormsModule, IonSearchbar, IonIcon, IonSpinner],
   templateUrl: './location-search.component.html',
-  styleUrls: ['./location-search.component.scss']
+  styleUrls: ['./location-search.component.scss'],
 })
 export class LocationSearchComponent {
   private placesService = inject(PlacesService);
   private configService = inject(MapConfigService);
 
-  readonly placeholder = input<string>('Search destination...');
+  readonly placeholder = input<string>('Cerca destinazione...');
   readonly disabled = input<boolean>(false);
   readonly placeSelected = output<PlaceResult>();
   readonly searchCleared = output<void>();
@@ -61,29 +57,31 @@ export class LocationSearchComponent {
 
     const debounceMs = this.configService.getAutocompleteDebounceMs();
 
-    this.searchSubject.pipe(
-      debounceTime(debounceMs),
-      distinctUntilChanged(),
-      switchMap(query => {
-        if (!query || query.length < 1) {
-          this.predictions.set([]);
-          this.isSearching.set(false);
-          return of([]);
-        }
-        this.isSearching.set(true);
-        return from(this.placesService.getPlacePredictions(query)).pipe(
-          catchError(error => {
-            this.searchError.emit(error.message || 'Search failed');
+    this.searchSubject
+      .pipe(
+        debounceTime(debounceMs),
+        distinctUntilChanged(),
+        switchMap((query) => {
+          if (!query || query.length < 1) {
+            this.predictions.set([]);
+            this.isSearching.set(false);
             return of([]);
-          })
-        );
-      }),
-      takeUntilDestroyed()
-    ).subscribe(predictions => {
-      this.predictions.set(predictions);
-      this.isSearching.set(false);
-      this.showPredictions.set(predictions.length > 0);
-    });
+          }
+          this.isSearching.set(true);
+          return from(this.placesService.getPlacePredictions(query)).pipe(
+            catchError((error) => {
+              this.searchError.emit(error.message || 'Ricerca fallita');
+              return of([]);
+            }),
+          );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((predictions) => {
+        this.predictions.set(predictions);
+        this.isSearching.set(false);
+        this.showPredictions.set(predictions.length > 0);
+      });
   }
 
   onSearchChange(event: CustomEvent): void {
@@ -115,7 +113,7 @@ export class LocationSearchComponent {
   private saveRecentSearch(place: PlaceResult): void {
     const current = this.recentSearches();
     // Remove if already exists
-    const filtered = current.filter(p => p.placeId !== place.placeId);
+    const filtered = current.filter((p) => p.placeId !== place.placeId);
     // Add to beginning
     const updated = [place, ...filtered].slice(0, this.MAX_RECENT);
     this.recentSearches.set(updated);
@@ -143,14 +141,16 @@ export class LocationSearchComponent {
     this.isSearching.set(true);
     this.showPredictions.set(false);
     try {
-      const placeDetails = await this.placesService.getPlaceDetails(prediction.placeId);
+      const placeDetails = await this.placesService.getPlaceDetails(
+        prediction.placeId,
+      );
       this.selectedPlace.set(placeDetails);
       this.searchQuery.set(placeDetails.name);
       this.hasSearchQuery.set(true);
       this.saveRecentSearch(placeDetails);
       this.placeSelected.emit(placeDetails);
     } catch (error) {
-      this.searchError.emit('Failed to get place details');
+      this.searchError.emit('Impossibile ottenere i dettagli del luogo');
     } finally {
       this.isSearching.set(false);
     }
@@ -161,7 +161,6 @@ export class LocationSearchComponent {
     this.searchQuery.set(place.name);
     this.hasSearchQuery.set(true);
     this.showPredictions.set(false);
-    // Don't save/reorder - keep history as-is when selecting from history
     this.placeSelected.emit(place);
   }
 

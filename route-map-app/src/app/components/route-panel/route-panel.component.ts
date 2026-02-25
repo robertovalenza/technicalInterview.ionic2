@@ -1,12 +1,8 @@
-import {
-  Component,
-  input,
-  output
-} from '@angular/core';
+import { Component, input, output, inject, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonItem, IonLabel, IonIcon, IonBadge, IonSpinner } from '@ionic/angular/standalone';
+import { IonCard, IonCardContent, IonItem, IonIcon, IonBadge, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { timeOutline, navigateOutline, carOutline } from 'ionicons/icons';
+import { timeOutline, navigateOutline, carOutline, navigate, arrowForward, closeOutline } from 'ionicons/icons';
 import { Route } from '../../services/directions.service';
 
 @Component({
@@ -17,7 +13,6 @@ import { Route } from '../../services/directions.service';
     IonCard,
     IonCardContent,
     IonItem,
-    IonLabel,
     IonIcon,
     IonBadge,
     IonSpinner
@@ -30,9 +25,49 @@ export class RoutePanelComponent {
   readonly selectedRouteIndex = input<number>(0);
   readonly isLoading = input<boolean>(false);
   readonly routeSelected = output<number>();
+  readonly panelClosed = output<void>();
+
+  private readonly elementRef = inject(ElementRef);
+  private touchStartY = 0;
+  private readonly minSwipeDistance = 80;
 
   constructor() {
-    addIcons({ timeOutline, navigateOutline, carOutline });
+    addIcons({ timeOutline, navigateOutline, carOutline, navigate, arrowForward, closeOutline });
+  }
+
+  private getPanelElement(): HTMLElement | null {
+    return this.elementRef.nativeElement.querySelector('.route-panel');
+  }
+
+  onTouchStart(event: TouchEvent): void {
+    this.touchStartY = event.touches[0].screenY;
+  }
+
+  onTouchMove(event: TouchEvent): void {
+    const touchY = event.touches[0].screenY;
+    const deltaY = touchY - this.touchStartY;
+    const panel = this.getPanelElement();
+    if (deltaY > 0 && panel) {
+      event.preventDefault();
+      const resistance = 0.5;
+      panel.style.transform = `translateY(${deltaY * resistance}px)`;
+    }
+  }
+
+  onTouchEnd(event: TouchEvent): void {
+    const touchEndY = event.changedTouches[0].screenY;
+    const swipeDistance = touchEndY - this.touchStartY;
+    const panel = this.getPanelElement();
+    if (panel) {
+      panel.style.transform = '';
+      if (swipeDistance > this.minSwipeDistance) {
+        this.panelClosed.emit();
+      }
+    }
+  }
+
+  onCloseClick(): void {
+    this.panelClosed.emit();
   }
 
   onRouteSelect(index: number): void {
@@ -42,8 +77,8 @@ export class RoutePanelComponent {
   }
 
   getRouteLabel(index: number): string {
-    if (index === 0) return 'Best Route';
-    if (index === 1) return 'Alternative 1';
-    return `Alternative ${index}`;
+    if (index === 0) return 'Percorso Migliore';
+    if (index === 1) return 'Alternativa 1';
+    return `Alternativa ${index}`;
   }
 }
