@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonSearchbar, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { locationOutline, timeOutline } from 'ionicons/icons';
+import { locationOutline, timeOutline, locateOutline, searchOutline } from 'ionicons/icons';
 import {
   PlacesService,
   PlacePrediction,
@@ -52,7 +52,7 @@ export class LocationSearchComponent {
   private readonly MAX_RECENT = 4;
 
   constructor() {
-    addIcons({ locationOutline, timeOutline });
+    addIcons({ locationOutline, timeOutline, locateOutline, searchOutline });
     this.loadRecentSearches();
 
     const debounceMs = this.configService.getAutocompleteDebounceMs();

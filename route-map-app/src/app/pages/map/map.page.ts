@@ -6,6 +6,7 @@ import {
   signal,
   computed,
   effect,
+  untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -49,17 +50,20 @@ export class MapPage implements OnInit, OnDestroy {
   private mapConfigService = inject(MapConfigService);
   private alertController = inject(AlertController);
 
-  readonly currentPosition = signal<Position | null>(null);
-  readonly locationError = signal<GeolocationError | null>(null);
-  readonly isLocating = signal<boolean>(false);
+  // Use geolocation service signals directly - NO SYNCING
+  readonly currentPosition = this.geolocationService.currentPosition;
+  readonly locationError = this.geolocationService.locationError;
+  readonly isLocating = this.geolocationService.isLocating;
+
   readonly selectedDestination = signal<PlaceResult | null>(null);
   readonly routes = signal<Route[]>([]);
   readonly selectedRouteIndex = signal<number>(0);
   readonly isCalculatingRoute = signal<boolean>(false);
-  readonly showLocationBanner = signal<boolean>(false);
-  readonly mapCenter = signal<google.maps.LatLngLiteral>(
-    this.mapConfigService.getDefaultCenter(),
-  );
+  // GPS position as default - starts null, waits for GPS
+  readonly mapCenter = signal<google.maps.LatLngLiteral | null>(null);
+  readonly showLocationBanner = computed(() => {
+    return this.locationError()?.code === 'PERMISSION_DENIED';
+  });
   readonly deviceHeading = signal<number | null>(null);
   private headingListener: any = null;
 
@@ -89,41 +93,53 @@ export class MapPage implements OnInit, OnDestroy {
   constructor() {
     addIcons({ locationOutline, navigate });
 
-    effect(() => {
-      this.currentPosition.set(this.geolocationService.currentPosition());
-      this.locationError.set(this.geolocationService.locationError());
-      this.isLocating.set(this.geolocationService.isLocating());
-    });
+    // Effect to update mapCenter when position is obtained
+    effect(
+      () => {
+        const position = this.currentPosition();
+        if (position) {
+          this.mapCenter.set({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        }
+      },
+      { allowSignalWrites: true },
+    );
 
-    effect(() => {
-      const error = this.locationError();
-      this.showLocationBanner.set(error?.code === 'PERMISSION_DENIED');
-    });
+    // Effect to fallback to default center if GPS fails
+    effect(
+      () => {
+        const error = this.locationError();
+        // Use untracked to avoid circular dependency
+        const center = untracked(this.mapCenter);
+        if (error && !center) {
+          this.mapCenter.set(this.mapConfigService.getDefaultCenter());
+        }
+      },
+      { allowSignalWrites: true },
+    );
 
-    effect(() => {
-      const position = this.currentPosition();
-      if (position) {
-        this.mapCenter.set({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      }
-    });
+    effect(
+      () => {
+        const destination = this.selectedDestination();
+        const origin = this.originLocation();
+        if (origin && destination) {
+          this.calculateRoutes(origin, destination.location);
+        }
+      },
+      { allowSignalWrites: true },
+    );
 
-    effect(() => {
-      const destination = this.selectedDestination();
-      const origin = this.originLocation();
-      if (origin && destination) {
-        this.calculateRoutes(origin, destination.location);
-      }
-    });
-
-    effect(() => {
-      const destination = this.selectedDestination();
-      if (destination) {
-        this.mapCenter.set(destination.location);
-      }
-    });
+    effect(
+      () => {
+        const destination = this.selectedDestination();
+        if (destination) {
+          this.mapCenter.set(destination.location);
+        }
+      },
+      { allowSignalWrites: true },
+    );
   }
 
   async ngOnInit(): Promise<void> {
@@ -201,6 +217,8 @@ export class MapPage implements OnInit, OnDestroy {
       this.routes.set(result.routes);
     } catch (error: any) {
       this.routes.set([]);
+      const errorMessage = error?.message || 'Impossibile calcolare il percorso. Riprova più tardi.';
+      this.showRouteError(errorMessage);
     } finally {
       this.isCalculatingRoute.set(false);
     }
