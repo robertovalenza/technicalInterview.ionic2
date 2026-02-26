@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { MapConfigService } from './map-config.service';
+import { LRUCache } from '../core/utils';
 
 export interface PlacePrediction {
   placeId: string;
@@ -22,10 +23,36 @@ export class PlacesService {
   private autocompleteService: google.maps.places.AutocompleteService | null =
     null;
   private placesService: google.maps.places.PlacesService | null = null;
-  private predictionsCache = new Map<string, PlacePrediction[]>();
-  private readonly cacheMaxSize = 50;
+  private predictionsCache = new LRUCache<string, PlacePrediction[]>(50);
+  private pendingRequests = new Map<string, Promise<PlacePrediction[]>>();
+  private readonly CACHE_KEY = 'places_service_cache';
 
-  constructor(private configService: MapConfigService) {}
+  constructor(private configService: MapConfigService) {
+    this.loadCacheFromStorage();
+  }
+
+  private loadCacheFromStorage(): void {
+    try {
+      const stored = localStorage.getItem(this.CACHE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        Object.entries(parsed).forEach(([key, value]) => {
+          this.predictionsCache.set(key, value as PlacePrediction[]);
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to load places cache from storage', e);
+    }
+  }
+
+  private saveCacheToStorage(): void {
+    try {
+      const cacheObject: Record<string, PlacePrediction[]> = {};
+      localStorage.setItem(this.CACHE_KEY, JSON.stringify(cacheObject));
+    } catch (e) {
+      console.warn('Failed to save places cache to storage', e);
+    }
+  }
 
   private initializeServices(): void {
     if (!this.autocompleteService && google?.maps?.places) {
@@ -38,8 +65,14 @@ export class PlacesService {
       return [];
     }
 
-    if (this.predictionsCache.has(query)) {
-      return this.predictionsCache.get(query)!;
+    const cached = this.predictionsCache.get(query);
+    if (cached) {
+      return cached;
+    }
+
+    const pendingRequest = this.pendingRequests.get(query);
+    if (pendingRequest) {
+      return pendingRequest;
     }
 
     this.initializeServices();
@@ -48,13 +81,15 @@ export class PlacesService {
       throw new Error('Servizio Google Places Autocomplete non disponibile');
     }
 
-    return new Promise((resolve, reject) => {
+    const requestPromise = new Promise<PlacePrediction[]>((resolve, reject) => {
       this.autocompleteService!.getPlacePredictions(
         {
           input: query,
           types: ['geocode', 'establishment'],
         },
         (predictions, status) => {
+          this.pendingRequests.delete(query);
+
           if (
             status !== google.maps.places.PlacesServiceStatus.OK ||
             !predictions
@@ -79,13 +114,17 @@ export class PlacesService {
               prediction.structured_formatting?.secondary_text || '',
           }));
 
-          // Cache results
-          this.addToCache(query, results);
+          // Cache results (LRU)
+          this.predictionsCache.set(query, results);
 
           resolve(results);
         },
       );
     });
+
+    this.pendingRequests.set(query, requestPromise);
+
+    return requestPromise;
   }
 
   async getPlaceDetails(placeId: string): Promise<PlaceResult> {
@@ -131,15 +170,10 @@ export class PlacesService {
 
   clearCache(): void {
     this.predictionsCache.clear();
-  }
-
-  private addToCache(query: string, results: PlacePrediction[]): void {
-    if (this.predictionsCache.size >= this.cacheMaxSize) {
-      const firstKey = this.predictionsCache.keys().next().value;
-      if (firstKey) {
-        this.predictionsCache.delete(firstKey);
-      }
+    try {
+      localStorage.removeItem(this.CACHE_KEY);
+    } catch (e) {
+      console.warn('Failed to clear places cache from storage', e);
     }
-    this.predictionsCache.set(query, results);
   }
 }

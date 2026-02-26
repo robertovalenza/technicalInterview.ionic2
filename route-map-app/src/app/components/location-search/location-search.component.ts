@@ -1,9 +1,21 @@
-import { Component, input, output, signal, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonSearchbar, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { locationOutline, timeOutline, locateOutline, searchOutline } from 'ionicons/icons';
+import {
+  locationOutline,
+  timeOutline,
+  locateOutline,
+  searchOutline,
+} from 'ionicons/icons';
 import {
   PlacesService,
   PlacePrediction,
@@ -27,6 +39,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   imports: [CommonModule, FormsModule, IonSearchbar, IonIcon, IonSpinner],
   templateUrl: './location-search.component.html',
   styleUrls: ['./location-search.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LocationSearchComponent {
   private placesService = inject(PlacesService);
@@ -50,6 +63,9 @@ export class LocationSearchComponent {
   private searchSubject = new Subject<string>();
   private readonly STORAGE_KEY = 'route_map_recent_searches';
   private readonly MAX_RECENT = 4;
+
+  trackByPlaceId = (index: number, place: PlaceResult | PlacePrediction) =>
+    'placeId' in place ? place.placeId : index;
 
   constructor() {
     addIcons({ locationOutline, timeOutline, locateOutline, searchOutline });

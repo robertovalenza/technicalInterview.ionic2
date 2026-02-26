@@ -1,8 +1,29 @@
-import { Component, input, output, inject, ElementRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  input,
+  output,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardContent, IonItem, IonIcon, IonBadge, IonSpinner } from '@ionic/angular/standalone';
+import {
+  IonCard,
+  IonCardContent,
+  IonItem,
+  IonIcon,
+  IonBadge,
+  IonSpinner,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { timeOutline, navigateOutline, carOutline, navigate, arrowForward, closeOutline } from 'ionicons/icons';
+import {
+  timeOutline,
+  navigateOutline,
+  carOutline,
+  navigate,
+  arrowForward,
+  closeOutline,
+} from 'ionicons/icons';
 import { Route } from '../../services/directions.service';
 
 @Component({
@@ -15,10 +36,11 @@ import { Route } from '../../services/directions.service';
     IonItem,
     IonIcon,
     IonBadge,
-    IonSpinner
+    IonSpinner,
   ],
   templateUrl: './route-panel.component.html',
-  styleUrls: ['./route-panel.component.scss']
+  styleUrls: ['./route-panel.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoutePanelComponent {
   readonly routes = input<Route[]>([]);

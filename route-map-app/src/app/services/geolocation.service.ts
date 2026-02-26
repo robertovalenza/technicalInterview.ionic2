@@ -122,8 +122,4 @@ export class GeolocationService {
         };
     }
   }
-
-  getErrorMessage(): string {
-    return this.locationError()?.message || '';
-  }
 }

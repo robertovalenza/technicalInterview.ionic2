@@ -15,16 +15,6 @@
     >
     </ion-searchbar>
 
-    @if (!hasSearchQuery()) {
-      <button
-        class="current-location-btn"
-        (click)="onUseCurrentLocation()"
-        title="Usa posizione attuale"
-      >
-        <ion-icon name="locate-outline"></ion-icon>
-      </button>
-    }
-
     @if (isSearching()) {
       <div class="search-loading-inline">
         <ion-spinner name="crescent"></ion-spinner>
@@ -83,7 +73,12 @@
         </div>
       }
 
-      @if (hasSearchQuery() && predictions().length === 0 && !isSearching() && recentSearches().length === 0) {
+      @if (
+        hasSearchQuery() &&
+        predictions().length === 0 &&
+        !isSearching() &&
+        recentSearches().length === 0
+      ) {
         <div class="empty-state">
           <ion-icon
             name="search-outline"

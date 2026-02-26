@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   OnInit,
   OnDestroy,
@@ -16,8 +17,6 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { locationOutline, navigate } from 'ionicons/icons';
-import { Position } from '@capacitor/geolocation';
-
 import { MapViewerComponent } from '../../components/map-viewer/map-viewer.component';
 import { LocationSearchComponent } from '../../components/location-search/location-search.component';
 import { RoutePanelComponent } from '../../components/route-panel/route-panel.component';
@@ -43,6 +42,7 @@ import { MapConfigService } from '../../services/map-config.service';
   ],
   templateUrl: './map.page.html',
   styleUrls: ['./map.page.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapPage implements OnInit, OnDestroy {
   private geolocationService = inject(GeolocationService);
@@ -50,7 +50,6 @@ export class MapPage implements OnInit, OnDestroy {
   private mapConfigService = inject(MapConfigService);
   private alertController = inject(AlertController);
 
-  // Use geolocation service signals directly - NO SYNCING
   readonly currentPosition = this.geolocationService.currentPosition;
   readonly locationError = this.geolocationService.locationError;
   readonly isLocating = this.geolocationService.isLocating;
@@ -59,7 +58,6 @@ export class MapPage implements OnInit, OnDestroy {
   readonly routes = signal<Route[]>([]);
   readonly selectedRouteIndex = signal<number>(0);
   readonly isCalculatingRoute = signal<boolean>(false);
-  // GPS position as default - starts null, waits for GPS
   readonly mapCenter = signal<google.maps.LatLngLiteral | null>(null);
   readonly showLocationBanner = computed(() => {
     return this.locationError()?.code === 'PERMISSION_DENIED';
@@ -93,7 +91,6 @@ export class MapPage implements OnInit, OnDestroy {
   constructor() {
     addIcons({ locationOutline, navigate });
 
-    // Effect to update mapCenter when position is obtained
     effect(
       () => {
         const position = this.currentPosition();
@@ -107,11 +104,9 @@ export class MapPage implements OnInit, OnDestroy {
       { allowSignalWrites: true },
     );
 
-    // Effect to fallback to default center if GPS fails
     effect(
       () => {
         const error = this.locationError();
-        // Use untracked to avoid circular dependency
         const center = untracked(this.mapCenter);
         if (error && !center) {
           this.mapCenter.set(this.mapConfigService.getDefaultCenter());
@@ -217,7 +212,9 @@ export class MapPage implements OnInit, OnDestroy {
       this.routes.set(result.routes);
     } catch (error: any) {
       this.routes.set([]);
-      const errorMessage = error?.message || 'Impossibile calcolare il percorso. Riprova più tardi.';
+      const errorMessage =
+        error?.message ||
+        'Impossibile calcolare il percorso. Riprova più tardi.';
       this.showRouteError(errorMessage);
     } finally {
       this.isCalculatingRoute.set(false);
